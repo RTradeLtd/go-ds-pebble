@@ -1,6 +1,8 @@
 package dspebble
 
 import (
+	"errors"
+
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
 	"github.com/petermattis/pebble"
@@ -63,7 +65,46 @@ func (d *Datastore) GetSize(key datastore.Key) (int, error) {
 // Query is used to search a datastore for keys, and optionally values
 // matching a given query
 func (d *Datastore) Query(q query.Query) (query.Results, error) {
-	return nil, nil
+	resBuilder := query.NewResultBuilder(q)
+	var iter *pebble.Iterator
+	if q.Prefix == "" {
+		iter = d.db.NewSnapshot().NewIter(nil)
+	} else {
+		iter = d.db.NewSnapshot().NewIter(&pebble.IterOptions{LowerBound: []byte(q.Prefix)})
+	}
+	// get the very first result
+	if !iter.First() {
+		return nil, errors.New("no results found")
+	}
+	result := query.Result{}
+	result.Key = string(iter.Key())
+	if !q.KeysOnly {
+		result.Value = iter.Value()
+	}
+	select {
+	case resBuilder.Output <- result:
+	default:
+		break
+	}
+	// search through remaining keys
+	for succ := iter.Next(); succ == true; succ = iter.Next() {
+		result := query.Result{}
+		val := iter.Key()
+		result.Key = string(val)
+		if !q.KeysOnly {
+			result.Value, result.Error = d.Get(datastore.NewKey(result.Key))
+		}
+		select {
+		case resBuilder.Output <- result:
+		default:
+			continue
+		}
+	}
+	// close the result builder
+	if err := resBuilder.Process.Close(); err != nil {
+		return nil, err
+	}
+	return resBuilder.Results(), nil
 }
 
 // Close is used to terminate our datastore connection

@@ -1,12 +1,14 @@
 package dspebble
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
 	"reflect"
 
 	"github.com/ipfs/go-datastore"
+	"github.com/ipfs/go-datastore/query"
 )
 
 func Test_NewDatastore(t *testing.T) {
@@ -45,9 +47,14 @@ func Test_Datastore(t *testing.T) {
 	}
 	defer ds.Close()
 	key := datastore.NewKey("keks")
+	key2 := datastore.NewKey("keks2")
 	data := []byte("hello world")
-	// test put
+	// test first put
 	if err := ds.Put(key, data); err != nil {
+		t.Fatal(err)
+	}
+	// test second put
+	if err := ds.Put(key2, data); err != nil {
 		t.Fatal(err)
 	}
 	// test get
@@ -66,7 +73,20 @@ func Test_Datastore(t *testing.T) {
 	if size != len(data) {
 		t.Fatal("bad size returned")
 	}
-	// TODO: query tests
+	// test an empty prefix query search
+	// this should iterate through all items in the datastore
+	results, err := ds.Query(query.Query{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := results.Rest()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res) != 2 {
+		fmt.Println(len(res))
+		t.Fatal("bad number of results found")
+	}
 	// test has
 	if has, err := ds.Has(key); err != nil {
 		t.Fatal(err)
