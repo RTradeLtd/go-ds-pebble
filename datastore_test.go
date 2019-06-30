@@ -1,6 +1,7 @@
 package dspebble
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -101,6 +102,7 @@ func Test_Datastore(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(res) != 2 {
+		fmt.Println(len(res))
 		t.Fatal("bad number of results found")
 	}
 	// test has

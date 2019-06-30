@@ -1,7 +1,7 @@
 package dspebble
 
 import (
-	"errors"
+	"fmt"
 
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
@@ -68,35 +68,21 @@ func (d *Datastore) Query(q query.Query) (query.Results, error) {
 	var (
 		entries []query.Entry
 		snap    = d.db.NewSnapshot()
-		iter    *pebble.Iterator
+		iter    = snap.NewIter(nil)
 	)
 	defer snap.Close()
-	if q.Prefix == "" {
-		iter = snap.NewIter(nil)
-	} else {
-		iter = snap.NewIter(&pebble.IterOptions{LowerBound: []byte(q.Prefix)})
-	}
 	defer iter.Close()
-	// get the very first result
-	if !iter.First() {
-		return nil, errors.New("no results found")
+	// TODO(postables): currently if we do not specify the initial `/`
+	// then all queries will not work. So we need to make sure that the "prefix"
+	// we specify, includes the `/` for ipfs datastore keys, otherwise it will not work
+	if q.Prefix != "" && q.Prefix[0] != '/' {
+		q.Prefix = fmt.Sprintf("/%s", q.Prefix)
 	}
-	entry := query.Entry{}
-	key := iter.Key()
-	entry.Key = string(key)
-	if !q.KeysOnly {
-		entry.Value = iter.Value()
-	}
-	entries = append(entries, entry)
-	for {
-		if !iter.SeekGE(key) {
-			break
-		}
-		if !iter.Next() {
-			break
-		}
-		entry = query.Entry{}
-		key = iter.Key()
+	// thanks to petermattis for suggestion
+	// see https://github.com/petermattis/pebble/issues/168#issuecomment-507042838
+	for valid := iter.SeekGE([]byte(q.Prefix)); valid; valid = iter.Next() {
+		entry := query.Entry{}
+		key := iter.Key()
 		entry.Key = string(key)
 		if !q.KeysOnly {
 			entry.Value = iter.Value()
