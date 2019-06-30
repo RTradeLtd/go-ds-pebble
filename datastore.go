@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	_ datastore.Datastore = (*Datastore)(nil)
+	_ datastore.Batching = (*Datastore)(nil)
 )
 
 // Datastore implements a pebble backed ipfs datastore
