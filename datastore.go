@@ -1,6 +1,8 @@
 package dspebble
 
 import (
+	"fmt"
+
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
 	"github.com/petermattis/pebble"
@@ -63,7 +65,32 @@ func (d *Datastore) GetSize(key datastore.Key) (int, error) {
 // Query is used to search a datastore for keys, and optionally values
 // matching a given query
 func (d *Datastore) Query(q query.Query) (query.Results, error) {
-	return nil, nil
+	var (
+		entries []query.Entry
+		snap    = d.db.NewSnapshot()
+		iter    = snap.NewIter(nil)
+	)
+	defer snap.Close()
+	defer iter.Close()
+	// TODO(postables): currently if we do not specify the initial `/`
+	// then all specific queries  will not work. So we need to make sure that the "prefix"
+	// we specify, includes the `/` for ipfs datastore keys, otherwise it will not work
+	if q.Prefix != "" && q.Prefix[0] != '/' {
+		q.Prefix = fmt.Sprintf("/%s", q.Prefix)
+	}
+	// thanks to petermattis for suggestion
+	// see https://github.com/petermattis/pebble/issues/168#issuecomment-507042838
+	for valid := iter.SeekGE([]byte(q.Prefix)); valid; valid = iter.Next() {
+		entry := query.Entry{}
+		key := iter.Key()
+		entry.Key = string(key)
+		if !q.KeysOnly {
+			entry.Value = iter.Value()
+		}
+		entries = append(entries, entry)
+	}
+	results := query.ResultsWithEntries(q, entries)
+	return results, nil
 }
 
 // Close is used to terminate our datastore connection
