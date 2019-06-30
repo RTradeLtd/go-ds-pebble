@@ -15,7 +15,8 @@ var (
 
 // Datastore implements a pebble backed ipfs datastore
 type Datastore struct {
-	db *pebble.DB
+	db       *pebble.DB
+	walStats bool
 }
 
 // NewDatastore instantiates a new pebble datastore
@@ -24,7 +25,7 @@ func NewDatastore(path string, opts *pebble.Options) (*Datastore, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Datastore{ds}, nil
+	return &Datastore{ds, false}, nil
 }
 
 // Put is used to store a value named by key
@@ -97,7 +98,16 @@ func (d *Datastore) DiskUsage() (uint64, error) {
 	for _, level := range d.db.Metrics().Levels {
 		totalSize = totalSize + level.Size
 	}
+	if d.walStats {
+		totalSize = totalSize + d.db.Metrics().WAL.Size
+	}
 	return totalSize, nil
+}
+
+// ToggleWALStats is used to toggle reporting of
+// WAL statistics when runnning DiskUsage
+func (d *Datastore) ToggleWALStats() {
+	d.walStats = !d.walStats
 }
 
 // Close is used to terminate our datastore connection
