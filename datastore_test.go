@@ -29,7 +29,7 @@ func Test_NewDatastore(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ds, err := NewDatastore(tt.args.path, nil)
+			ds, err := NewDatastore(tt.args.path, nil, false)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("NewDatastore() err = %v, wantErr %v", err, tt.wantErr)
 			}
@@ -43,8 +43,8 @@ func Test_NewDatastore(t *testing.T) {
 }
 
 func Test_Datastore(t *testing.T) {
-	//	defer os.RemoveAll("./tmp")
-	ds, err := NewDatastore("./tmp", nil)
+	defer os.RemoveAll("./tmp")
+	ds, err := NewDatastore("./tmp", nil, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -155,8 +155,8 @@ func Test_Datastore(t *testing.T) {
 		t.Fatal("expected error")
 	}
 	// test has after delete
-	if has, err := ds.Has(key); err == nil {
-		t.Fatal("error expected")
+	if has, err := ds.Has(key); err != nil {
+		t.Fatal(err)
 	} else if has {
 		t.Fatal("should not have key")
 	}
