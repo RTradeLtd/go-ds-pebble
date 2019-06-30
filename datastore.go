@@ -93,6 +93,23 @@ func (d *Datastore) Query(q query.Query) (query.Results, error) {
 	return results, nil
 }
 
+// Batch returns a batchable datastore useful for combining
+// many operations into one
+func (d *Datastore) Batch() (datastore.Batch, error) {
+	return datastore.NewBasicBatch(d), nil
+}
+
+// DiskUsage returns the space used by our datastore in bytes
+// it does not include the WAL (Write Ahead Log) size
+// and only includes total size from all the "levels"
+func (d *Datastore) DiskUsage() (uint64, error) {
+	var totalSize uint64
+	for _, level := range d.db.Metrics().Levels {
+		totalSize = totalSize + level.Size
+	}
+	return totalSize, nil
+}
+
 // Close is used to terminate our datastore connection
 func (d *Datastore) Close() error {
 	return d.db.Close()
