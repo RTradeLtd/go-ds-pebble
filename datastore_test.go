@@ -45,8 +45,8 @@ func Test_Datastore(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer ds.Close()
-	key := datastore.NewKey("keks")
-	key2 := datastore.NewKey("keks2")
+	key := datastore.NewKey("kek")
+	key2 := datastore.NewKey("keks")
 	key3 := datastore.NewKey("keks3")
 	data := []byte("hello world")
 	// test first put
@@ -88,6 +88,19 @@ func Test_Datastore(t *testing.T) {
 		t.Fatal(err)
 	}
 	if len(res) < 2 {
+		t.Fatal("bad number of results found")
+	}
+	// test a prefixed query search for keks, this should
+	// only return at most 2 results
+	results, err = ds.Query(query.Query{Prefix: "keks"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err = results.Rest()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(res) != 2 {
 		t.Fatal("bad number of results found")
 	}
 	// test has
