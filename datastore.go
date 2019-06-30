@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	_ datastore.Datastore = (*Datastore)(nil)
+	_ datastore.Batching = (*Datastore)(nil)
 )
 
 // Datastore implements a pebble backed ipfs datastore
@@ -43,23 +43,12 @@ func (d *Datastore) Get(key datastore.Key) ([]byte, error) {
 
 // Has is used to check if we have a value named key in our datastore
 func (d *Datastore) Has(key datastore.Key) (bool, error) {
-	_, err := d.Get(key)
-	if err != nil && err != pebble.ErrNotFound {
-		return false, err
-	}
-	if err != nil && err == pebble.ErrNotFound {
-		return false, nil
-	}
-	return true, nil
+	return datastore.GetBackedHas(d, key)
 }
 
 // GetSize is used to get the size of a value named key
 func (d *Datastore) GetSize(key datastore.Key) (int, error) {
-	data, err := d.Get(key)
-	if err != nil {
-		return 0, err
-	}
-	return len(data), nil
+	return datastore.GetBackedSize(d, key)
 }
 
 // Query is used to search a datastore for keys, and optionally values
@@ -91,6 +80,23 @@ func (d *Datastore) Query(q query.Query) (query.Results, error) {
 	}
 	results := query.ResultsWithEntries(q, entries)
 	return results, nil
+}
+
+// Batch returns a batchable datastore useful for combining
+// many operations into one
+func (d *Datastore) Batch() (datastore.Batch, error) {
+	return datastore.NewBasicBatch(d), nil
+}
+
+// DiskUsage returns the space used by our datastore in bytes
+// it does not include the WAL (Write Ahead Log) size
+// and only includes total size from all the "levels"
+func (d *Datastore) DiskUsage() (uint64, error) {
+	var totalSize uint64
+	for _, level := range d.db.Metrics().Levels {
+		totalSize = totalSize + level.Size
+	}
+	return totalSize, nil
 }
 
 // Close is used to terminate our datastore connection

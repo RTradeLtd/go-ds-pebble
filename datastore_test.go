@@ -2,10 +2,13 @@ package dspebble
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"testing"
 
 	"reflect"
+
+	"time"
 
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
@@ -111,6 +114,29 @@ func Test_Datastore(t *testing.T) {
 	} else if !has {
 		t.Fatal("should have key")
 	}
+
+	if _, err := ds.Batch(); err != nil {
+		t.Fatal(err)
+	}
+	randData := make([]byte, 100*1024*1024)
+	if _, err := rand.Read(randData); err != nil {
+		t.Fatal(err)
+	}
+	if err := ds.Put(datastore.NewKey("keksmang"), randData); err != nil {
+		t.Fatal(err)
+	}
+	// since we dont sync the writes to disk
+	// we need to sleep a bit before we get an accurate
+	// disk usage reading.
+	// Since we don't include WAL stats in the disk usage report
+	// with no disk sync writes, by calling this too early
+	// it is entirely possible that the report will be "invalid"
+	time.Sleep(time.Second * 10)
+	if dsSize, err := ds.DiskUsage(); err != nil {
+		t.Fatal(err)
+	} else if dsSize != 104858649 {
+		t.Fatal("bad disk usage stats")
+	}
 	// test delete
 	if err := ds.Delete(key); err != nil {
 		t.Fatal(err)
@@ -120,8 +146,8 @@ func Test_Datastore(t *testing.T) {
 		t.Fatal("expected error")
 	}
 	// test has after delete
-	if has, err := ds.Has(key); err != nil {
-		t.Fatal(err)
+	if has, err := ds.Has(key); err == nil {
+		t.Fatal("error expected")
 	} else if has {
 		t.Fatal("should not have key")
 	}
