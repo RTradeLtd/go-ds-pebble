@@ -73,7 +73,7 @@ func (d *Datastore) Query(q query.Query) (query.Results, error) {
 	defer snap.Close()
 	defer iter.Close()
 	// TODO(postables): currently if we do not specify the initial `/`
-	// then all queries will not work. So we need to make sure that the "prefix"
+	// then all specific queries  will not work. So we need to make sure that the "prefix"
 	// we specify, includes the `/` for ipfs datastore keys, otherwise it will not work
 	if q.Prefix != "" && q.Prefix[0] != '/' {
 		q.Prefix = fmt.Sprintf("/%s", q.Prefix)
