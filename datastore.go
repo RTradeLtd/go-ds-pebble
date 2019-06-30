@@ -43,23 +43,12 @@ func (d *Datastore) Get(key datastore.Key) ([]byte, error) {
 
 // Has is used to check if we have a value named key in our datastore
 func (d *Datastore) Has(key datastore.Key) (bool, error) {
-	_, err := d.Get(key)
-	if err != nil && err != pebble.ErrNotFound {
-		return false, err
-	}
-	if err != nil && err == pebble.ErrNotFound {
-		return false, nil
-	}
-	return true, nil
+	return datastore.GetBackedHas(d, key)
 }
 
 // GetSize is used to get the size of a value named key
 func (d *Datastore) GetSize(key datastore.Key) (int, error) {
-	data, err := d.Get(key)
-	if err != nil {
-		return 0, err
-	}
-	return len(data), nil
+	return datastore.GetBackedSize(d, key)
 }
 
 // Query is used to search a datastore for keys, and optionally values
