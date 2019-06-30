@@ -4,4 +4,4 @@
 
 Datastore implementation using github.com/petermattis/pebble.
 
-Please be cautious about using this in your code. Although pebble works, there is an explicit warning about using pebble. See the comment from maintainer [`petermattis`](https://github.com/petermattis/pebble/issues/168#issuecomment-507042998) for more information.
+Please be cautious about using this in your code. Although pebble works, there is an explicit warning about using pebble. See the comment from pebble maintainer [`petermattis`](https://github.com/petermattis/pebble/issues/168#issuecomment-507042998) for more information.
