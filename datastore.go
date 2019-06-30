@@ -17,25 +17,26 @@ var (
 type Datastore struct {
 	db       *pebble.DB
 	walStats bool
+	withSync bool
 }
 
 // NewDatastore instantiates a new pebble datastore
-func NewDatastore(path string, opts *pebble.Options) (*Datastore, error) {
+func NewDatastore(path string, opts *pebble.Options, withSync bool) (*Datastore, error) {
 	ds, err := pebble.Open(path, opts)
 	if err != nil {
 		return nil, err
 	}
-	return &Datastore{ds, false}, nil
+	return &Datastore{ds, false, withSync}, nil
 }
 
 // Put is used to store a value named by key
 func (d *Datastore) Put(key datastore.Key, value []byte) error {
-	return d.db.Set(key.Bytes(), value, &pebble.WriteOptions{Sync: false})
+	return d.db.Set(key.Bytes(), value, &pebble.WriteOptions{Sync: d.withSync})
 }
 
 // Delete removes the value for given `key`.
 func (d *Datastore) Delete(key datastore.Key) error {
-	return d.db.Delete(key.Bytes(), &pebble.WriteOptions{Sync: false})
+	return d.db.Delete(key.Bytes(), &pebble.WriteOptions{Sync: d.withSync})
 }
 
 // Get is used to return a value named key from our datastore
