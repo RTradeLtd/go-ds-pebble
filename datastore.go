@@ -41,7 +41,11 @@ func (d *Datastore) Delete(key datastore.Key) error {
 
 // Get is used to return a value named key from our datastore
 func (d *Datastore) Get(key datastore.Key) ([]byte, error) {
-	return d.db.Get(key.Bytes())
+	data, err := d.db.Get(key.Bytes())
+	if err != nil {
+		return nil, datastore.ErrNotFound
+	}
+	return data, nil
 }
 
 // Has is used to check if we have a value named key in our datastore

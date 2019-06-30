@@ -155,8 +155,8 @@ func Test_Datastore(t *testing.T) {
 		t.Fatal("expected error")
 	}
 	// test has after delete
-	if has, err := ds.Has(key); err == nil {
-		t.Fatal("error expected")
+	if has, err := ds.Has(key); err != nil {
+		t.Fatal(err)
 	} else if has {
 		t.Fatal("should not have key")
 	}
