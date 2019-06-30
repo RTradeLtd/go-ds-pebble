@@ -1,7 +1,6 @@
 package dspebble
 
 import (
-	"fmt"
 	"os"
 	"testing"
 
@@ -48,6 +47,7 @@ func Test_Datastore(t *testing.T) {
 	defer ds.Close()
 	key := datastore.NewKey("keks")
 	key2 := datastore.NewKey("keks2")
+	key3 := datastore.NewKey("keks3")
 	data := []byte("hello world")
 	// test first put
 	if err := ds.Put(key, data); err != nil {
@@ -55,6 +55,10 @@ func Test_Datastore(t *testing.T) {
 	}
 	// test second put
 	if err := ds.Put(key2, data); err != nil {
+		t.Fatal(err)
+	}
+	// test third put
+	if err := ds.Put(key3, data); err != nil {
 		t.Fatal(err)
 	}
 	// test get
@@ -83,8 +87,7 @@ func Test_Datastore(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(res) != 2 {
-		fmt.Println(len(res))
+	if len(res) < 2 {
 		t.Fatal("bad number of results found")
 	}
 	// test has

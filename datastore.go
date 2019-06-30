@@ -65,46 +65,46 @@ func (d *Datastore) GetSize(key datastore.Key) (int, error) {
 // Query is used to search a datastore for keys, and optionally values
 // matching a given query
 func (d *Datastore) Query(q query.Query) (query.Results, error) {
-	resBuilder := query.NewResultBuilder(q)
-	var iter *pebble.Iterator
+	var (
+		entries []query.Entry
+		snap    = d.db.NewSnapshot()
+		iter    *pebble.Iterator
+	)
+	defer snap.Close()
 	if q.Prefix == "" {
-		iter = d.db.NewSnapshot().NewIter(nil)
+		iter = snap.NewIter(nil)
 	} else {
-		iter = d.db.NewSnapshot().NewIter(&pebble.IterOptions{LowerBound: []byte(q.Prefix)})
+		iter = snap.NewIter(&pebble.IterOptions{LowerBound: []byte(q.Prefix)})
 	}
+	defer iter.Close()
 	// get the very first result
 	if !iter.First() {
 		return nil, errors.New("no results found")
 	}
-	result := query.Result{}
-	result.Key = string(iter.Key())
+	entry := query.Entry{}
+	key := iter.Key()
+	entry.Key = string(key)
 	if !q.KeysOnly {
-		result.Value = iter.Value()
+		entry.Value = iter.Value()
 	}
-	select {
-	case resBuilder.Output <- result:
-	default:
-		break
-	}
-	// search through remaining keys
-	for succ := iter.Next(); succ == true; succ = iter.Next() {
-		result := query.Result{}
-		val := iter.Key()
-		result.Key = string(val)
+	entries = append(entries, entry)
+	for {
+		if !iter.SeekGE(key) {
+			break
+		}
+		if !iter.Next() {
+			break
+		}
+		entry = query.Entry{}
+		key = iter.Key()
+		entry.Key = string(key)
 		if !q.KeysOnly {
-			result.Value, result.Error = d.Get(datastore.NewKey(result.Key))
+			entry.Value = iter.Value()
 		}
-		select {
-		case resBuilder.Output <- result:
-		default:
-			continue
-		}
+		entries = append(entries, entry)
 	}
-	// close the result builder
-	if err := resBuilder.Process.Close(); err != nil {
-		return nil, err
-	}
-	return resBuilder.Results(), nil
+	results := query.ResultsWithEntries(q, entries)
+	return results, nil
 }
 
 // Close is used to terminate our datastore connection
