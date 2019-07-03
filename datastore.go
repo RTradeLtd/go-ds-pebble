@@ -79,6 +79,10 @@ func (d *Datastore) Query(q query.Query) (query.Results, error) {
 	for valid := iter.SeekGE([]byte(q.Prefix)); valid; valid = iter.Next() {
 		entry := query.Entry{}
 		key := iter.Key()
+		// strip the / if present
+		if key[0] == '/' {
+			key = key[1:len(key)]
+		}
 		entry.Key = string(key)
 		if !q.KeysOnly {
 			entry.Value = iter.Value()
