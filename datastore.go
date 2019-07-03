@@ -85,6 +85,7 @@ func (d *Datastore) Query(q query.Query) (query.Results, error) {
 			entry.Value = iter.Value()
 		}
 		entries = append(entries, entry)
+		fmt.Printf("entry found\n%+v\n", entry)
 	}
 	results := query.ResultsWithEntries(q, entries)
 	return results, nil
