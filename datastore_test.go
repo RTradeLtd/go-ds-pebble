@@ -42,6 +42,42 @@ func Test_NewDatastore(t *testing.T) {
 	}
 }
 
+func Test_Batch(t *testing.T) {
+	defer os.RemoveAll("./tmp")
+	ds, err := NewDatastore("./tmp", nil, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ds.Close()
+	key := datastore.NewKey("kek")
+	key2 := datastore.NewKey("keks")
+	key3 := datastore.NewKey("keks3")
+	data := []byte("hello world")
+	batcher, err := ds.Batch()
+	type args struct {
+		key datastore.Key
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{"1", args{key}},
+		{"2", args{key2}},
+		{"3", args{key3}},
+	}
+	for _, tt := range tests {
+		if err := batcher.Put(tt.args.key, data); err != nil {
+			t.Fatal(err)
+		}
+		if err := batcher.Delete(key); err != nil {
+			t.Fatal(err)
+		}
+		if err := batcher.Commit(); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
 func Test_Datastore(t *testing.T) {
 	defer os.RemoveAll("./tmp")
 	ds, err := NewDatastore("./tmp", nil, true)

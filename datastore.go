@@ -88,10 +88,31 @@ func (d *Datastore) Query(q query.Query) (query.Results, error) {
 	return results, nil
 }
 
+type pebbleBatch struct {
+	db *pebble.Batch
+}
+
 // Batch returns a batchable datastore useful for combining
 // many operations into one
 func (d *Datastore) Batch() (datastore.Batch, error) {
-	return datastore.NewBasicBatch(d), nil
+	return &pebbleBatch{
+		db: d.db.NewBatch(),
+	}, nil
+}
+
+// Put is used to load a Put operation as a batch based op
+func (b *pebbleBatch) Put(key datastore.Key, value []byte) error {
+	return b.db.Set(key.Bytes(), value, &pebble.WriteOptions{Sync: true})
+}
+
+// Delete is used to load a Delete operation as a batch based op
+func (b *pebbleBatch) Delete(key datastore.Key) error {
+	return b.db.Delete(key.Bytes(), &pebble.WriteOptions{Sync: true})
+}
+
+// Commit is used to commit all operation
+func (b *pebbleBatch) Commit() error {
+	return b.db.Commit(&pebble.WriteOptions{Sync: true})
 }
 
 // DiskUsage returns the space used by our datastore in bytes
