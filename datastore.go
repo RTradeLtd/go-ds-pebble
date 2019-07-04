@@ -61,7 +61,6 @@ func (d *Datastore) GetSize(key datastore.Key) (int, error) {
 // Query is used to search a datastore for keys, and optionally values
 // matching a given query
 func (d *Datastore) Query(q query.Query) (query.Results, error) {
-	fmt.Printf("%+v\n", q)
 	var (
 		entries []query.Entry
 		snap    = d.db.NewSnapshot()
@@ -84,7 +83,6 @@ func (d *Datastore) Query(q query.Query) (query.Results, error) {
 			entry.Value = iter.Value()
 		}
 		entries = append(entries, entry)
-		fmt.Printf("entry found\n%+v\n", entry)
 	}
 	results := query.ResultsWithEntries(q, entries)
 	return results, nil
