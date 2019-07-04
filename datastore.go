@@ -79,9 +79,7 @@ func (d *Datastore) Query(q query.Query) (query.Results, error) {
 	// see https://github.com/petermattis/pebble/issues/168#issuecomment-507042838
 	for valid := iter.SeekGE([]byte(q.Prefix)); valid; valid = iter.Next() {
 		entry := query.Entry{}
-		key := iter.Key()
-		//entry.Key = fmt.Sprintf("%s%s", q.Prefix, string(key))
-		entry.Key = string(key)
+		entry.Key = fmt.Sprintf("%s%s", q.Prefix, string(iter.Key()))
 		if !q.KeysOnly {
 			entry.Value = iter.Value()
 		}
