@@ -3,9 +3,9 @@ package dspebble
 import (
 	"fmt"
 
+	"github.com/cockroachdb/pebble"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
-	"github.com/cockroachdb/pebble"
 )
 
 var (
