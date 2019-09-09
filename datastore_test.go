@@ -170,17 +170,16 @@ func Test_Datastore(t *testing.T) {
 	time.Sleep(time.Second * 10)
 	if dsSize, err := ds.DiskUsage(); err != nil {
 		t.Fatal(err)
-	} else if dsSize != 104858649 {
-		t.Fatal("bad disk usage stats")
+	} else if dsSize < 104858515 || dsSize > 104858649 {
+		t.Fatal("bad disk usage stats", dsSize)
 	}
 	// toggle wal stats reporting
 	ds.ToggleWALStats()
 	// do a disk usage reports iwht wal enabled
 	if dsSize, err := ds.DiskUsage(); err != nil {
 		t.Fatal(err)
-	} else if dsSize != 209751498 {
-		fmt.Println(dsSize)
-		t.Fatal("bad disk usage stats")
+	} else if dsSize < 209751364 || dsSize > 209751498 {
+		t.Fatal("bad disk usage stats", dsSize)
 	}
 	// test delete
 	if err := ds.Delete(key); err != nil {

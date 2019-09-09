@@ -5,7 +5,7 @@ import (
 
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
-	"github.com/petermattis/pebble"
+	"github.com/cockroachdb/pebble"
 )
 
 var (
@@ -75,7 +75,7 @@ func (d *Datastore) Query(q query.Query) (query.Results, error) {
 		q.Prefix = fmt.Sprintf("/%s", q.Prefix)
 	}
 	// thanks to petermattis for suggestion
-	// see https://github.com/petermattis/pebble/issues/168#issuecomment-507042838
+	// see https://github.com/cockroachdb/pebble/issues/168#issuecomment-507042838
 	for valid := iter.SeekGE([]byte(q.Prefix)); valid; valid = iter.Next() {
 		entry := query.Entry{}
 		entry.Key = fmt.Sprintf("%s%s", q.Prefix, string(iter.Key()))
