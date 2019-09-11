@@ -3,6 +3,6 @@ module github.com/RTradeLtd/go-ds-pebble
 go 1.12
 
 require (
-	github.com/ipfs/go-datastore v0.0.5
-	github.com/petermattis/pebble v0.0.0-20190625125356-36682bdf8ba0
+	github.com/cockroachdb/pebble v0.0.0-20190907142523-2010d290d3ee
+	github.com/ipfs/go-datastore v0.1.0
 )
