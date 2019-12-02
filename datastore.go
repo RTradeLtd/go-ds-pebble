@@ -81,6 +81,7 @@ func (d *Datastore) Query(q query.Query) (query.Results, error) {
 		entry.Key = fmt.Sprintf("%s%s", q.Prefix, string(iter.Key()))
 		if !q.KeysOnly {
 			entry.Value = iter.Value()
+			entry.Size = int(len(entry.Value))
 		}
 		entries = append(entries, entry)
 	}
