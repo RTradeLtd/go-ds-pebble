@@ -76,6 +76,34 @@ func Test_Batch(t *testing.T) {
 	}
 }
 
+func Test_Sync(t *testing.T) {
+	type args struct {
+		sync bool
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{"With-Sync", args{true}},
+		{"Without-Sync", args{false}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			defer os.RemoveAll("./tmp")
+			ds, err := NewDatastore("./tmp", nil, tt.args.sync)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if ds.withSync != tt.args.sync {
+				t.Fatal("bad sync status")
+			}
+			if err := ds.Sync(datastore.NewKey("hmm")); err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
 func Test_Datastore(t *testing.T) {
 	defer os.RemoveAll("./tmp")
 	ds, err := NewDatastore("./tmp", nil, false)
