@@ -89,6 +89,15 @@ func (d *Datastore) Query(q query.Query) (query.Results, error) {
 	return results, nil
 }
 
+// Sync is used to manually trigger syncing db contents to disk.
+// This call is only usable when synchronous writes aren't enabled
+func (d *Datastore) Sync(prefix datastore.Key) error {
+	if d.withSync {
+		return nil
+	}
+	return d.db.Flush()
+}
+
 type pebbleBatch struct {
 	db *pebble.Batch
 }
